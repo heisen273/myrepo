@@ -24,9 +24,7 @@ from functools import reduce
 ####
 #query_url = 'https://www.googleapis.com/customsearch/v1?key=%s&cx=%s&q=%s' % (api_key,searchEngine_id,searchQuery)
 
-public_url = 'https://cse.google.com/cse?cx=014289537967084031256:2dgojxdesig'
-searchEngine_id = '014289537967084031256:2dgojxdesig'
-api_key = 'AIzaSyAJo5ph7O9UeIR2gTe4Cd_dTnyYa9Tn2xA'
+# Global values
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -80,11 +78,11 @@ def storeContent(link, keyword):
 
     content = unicodedata.normalize("NFKD", Extractor(extractor='DefaultExtractor', url=link).getText()).split('\n')
 
-    # split content in sentences
+    # Split content in sentences
     sentences = reduce(operator.add, [nltk.sent_tokenize(x) for x in content])
     bigSentences = [x for x in sentences if len(x.split(' ')) > 10]
 
-    # if there are more than 10 sentences with at least 10 words
+    # If there are more than 10 sentences with at least 10 words
     if len(bigSentences) > 10:
         # need to check language - it needs to be everything but english
         # Language is being checked using all sentences
@@ -93,17 +91,23 @@ def storeContent(link, keyword):
 
         if lang != 'EN':
 
+            # Calculate score
             contentScore = ' '.join(bigSentences).lower().count(keyword.lower())
 
+            # Save to tmp table
             insertQuery = "INSERT INTO tmp_keywords (keyword, link, original, score, process_date) VALUES (%s, %s, %s, %s, %s)"
             insertValues = (keyword, link, ' '.join(bigSentences), contentScore, datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
             cursor.execute(insertQuery, insertValues)
             mydb.commit()
 
+def processFilteredContent(keyword):
+    """ """
+
+    topResultsQuery = "SELECT * FROM tmp_keywords "
 
 
 
-
+process('./keywords.csv')
 
         ## Sort the sentences by the number of occurence of the keyword
         #sorted([(x,x.count('iphone')) for x in bigSentences ], key=lambda x: x[1])
