@@ -1,4 +1,5 @@
 import time
+import datetime
 import requests
 import unicodedata
 import nltk
@@ -49,7 +50,7 @@ def process(filename):
         allKeywordLinks = getKeywordLinks(keyword)
 
         for link in allKeywordLinks:
-            processLink(link, keyword)
+            storeContent(link, keyword)
 
 def getKeywordLinks(keyword):
     """
@@ -72,9 +73,9 @@ def getKeywordLinks(keyword):
         time.sleep(1)
 
 
-def processLink(link, keyword):
+def storeContent(link, keyword):
     """
-    Gets link content using boilerpipe, checks if it big enough, sets the score and save's it to temporary DB table.
+    Gets link content using boilerpipe, checks if it is valid, sets the score and save's it to temporary DB table.
     """
 
     content = unicodedata.normalize("NFKD", Extractor(extractor='DefaultExtractor', url=link).getText()).split('\n')
@@ -87,14 +88,15 @@ def processLink(link, keyword):
     if len(bigSentences) > 10:
         # need to check language - it needs to be everything but english
         # Language is being checked using all sentences
-        lang = detect(' '.join(bigSentences)).uppwer()
+        ## check with Vincent, if we could simply detect language using first/last/random sentence, instead of whole content.
+        lang = detect(' '.join(bigSentences)).upper()
 
         if lang != 'EN':
 
             contentScore = ' '.join(bigSentences).lower().count(keyword.lower())
 
-            insertQuery = "INSERT INTO tmp_keywords (keyword, link, original, score) VALUES (%s, %s, %s, %s)"
-            insertValues = (keyword, link, ' '.join(bigSentences), contentScore)
+            insertQuery = "INSERT INTO tmp_keywords (keyword, link, original, score, process_date) VALUES (%s, %s, %s, %s, %s)"
+            insertValues = (keyword, link, ' '.join(bigSentences), contentScore, datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
             cursor.execute(insertQuery, insertValues)
             mydb.commit()
 
