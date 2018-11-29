@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS act.tmp_keywords (
    link VARCHAR(2083) NOT NULL,
    original TEXT NOT NULL,
    score INT NOT NULL,
+   lang VARCHAR(10) NOT NULL,
    process_date DATE NOT NULL
 );
 
@@ -17,7 +18,7 @@ CREATE TABLE IF NOT EXISTS act.keywords (
    desktop_screenshot TEXT NOT NULL,
    mobile_screenshot TEXT NOT NULL,
    score INT NOT NULL,
+   original_lang VARCHAR(10) NOT NULL,
    process_date DATE NOT NULL
 );
-
 
